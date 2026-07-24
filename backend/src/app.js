@@ -5,6 +5,7 @@ const helmet = require('helmet');
 const cors = require('cors');
 const morgan = require('morgan');
 
+const authRouter = require('./routes/auth.routes');
 const healthRouter = require('./routes/health.route');
 const notFound = require('./middlewares/notFound.middleware');
 
@@ -17,6 +18,8 @@ app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 app.use(morgan("dev"));
 
+
+app.use('/api/v1/auth', authRouter);
 app.use('/api/v1/health', healthRouter);
 
 app.use(notFound);
