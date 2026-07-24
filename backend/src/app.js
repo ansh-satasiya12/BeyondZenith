@@ -7,7 +7,9 @@ const morgan = require('morgan');
 
 const authRouter = require('./routes/auth.routes');
 const healthRouter = require('./routes/health.route');
+
 const notFound = require('./middlewares/notFound.middleware');
+const errorMiddleware = require('./middlewares/error.middleware');
 
 const app = express();
 
@@ -23,5 +25,7 @@ app.use('/api/v1/auth', authRouter);
 app.use('/api/v1/health', healthRouter);
 
 app.use(notFound);
+
+app.use(errorMiddleware)
 
 module.exports = app;
