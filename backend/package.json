@@ -1,5 +1,5 @@
 {
-  "name": "spotify-backend",
+  "name": "beyondzenith-backend",
   "version": "1.0.0",
   "description": "",
   "main": "src/server.js",
@@ -19,6 +19,7 @@
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
     "helmet": "^8.3.0",
+    "mongoose": "^9.8.0",
     "morgan": "^1.11.0",
     "zod": "^4.4.3"
   },
