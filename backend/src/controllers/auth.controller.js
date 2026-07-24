@@ -1,8 +1,12 @@
 const { registerUser } = require('../services/auth.service');
 
 const registercontroller = async (req, res) => {
-    const data = await registerUser(req.body);
-    res.json(data);
+    const result = await registerUser(req.body);
+    res.status(201).json({
+        success: true,
+        message: "User registered successfully",
+        data: result
+    });
 };
 
 module.exports = {

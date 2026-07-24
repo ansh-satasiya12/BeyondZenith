@@ -5,6 +5,8 @@ dotenv.config();
 const PORT = process.env.PORT || 5000;
 const NODE_ENV = process.env.NODE_ENV || 'development';
 const MONGODB_URI = process.env.MONGODB_URI;
+const JWT_ACCESS_SECRET = process.env.JWT_ACCESS_SECRET;
+const JWT_ACCESS_EXPIRES_IN = process.env.JWT_ACCESS_EXPIRES_IN;
 
 if (!PORT) {
   throw new Error('PORT environment variable is missing');
@@ -17,5 +19,7 @@ if (!MONGODB_URI) {
 module.exports = Object.freeze({
   PORT,
   NODE_ENV,
-  MONGODB_URI
+  MONGODB_URI,
+  JWT_ACCESS_SECRET,
+  JWT_ACCESS_EXPIRES_IN
 });

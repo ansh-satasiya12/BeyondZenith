@@ -1,6 +1,7 @@
 const User = require('../models/user.model');
 const bcrypt = require('bcrypt');
 const AppError = require('../utils/AppError');
+const { generateAccessToken } = require('../utils/jwt');
 
 const registerUser = async (userData) => {
     const { name, email, password } = userData;
@@ -12,11 +13,21 @@ const registerUser = async (userData) => {
     const user = await User.create({
         name,
         email,
-        password: hashedPassword
+        password: hashedPassword,
+        role: user.role || "user"
     });
+
     const userObject = user.toObject();
     delete userObject.password;
-    return userObject;
+    const accessToken = generateAccessToken({
+        id: user._id,
+        email: user.email,
+        role: user.role
+    });
+    return {
+        user: userObject,
+        accessToken
+    };
 
 };
 
