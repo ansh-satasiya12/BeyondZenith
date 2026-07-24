@@ -1,7 +1,7 @@
-const { registerservice } = require('../services/auth.service');
+const { registerUser } = require('../services/auth.service');
 
 const registercontroller = async (req, res) => {
-    const data = await registerservice();
+    const data = await registerUser(req.body);
     res.json(data);
 };
 
