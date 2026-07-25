@@ -29,7 +29,17 @@ const loginController = async (req, res) => {
     });
 };
 
+const getMe = (req, res) => {
+    res.status(200).json({
+        success: true,
+        data: {
+            user: req.user,
+        },
+    });
+};
+
 module.exports = {
     registercontroller,
-    loginController
+    loginController,
+    getMe
 };
