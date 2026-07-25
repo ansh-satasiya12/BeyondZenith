@@ -14,7 +14,6 @@ const registerUser = async (userData) => {
         name,
         email,
         password: hashedPassword,
-        role: user.role || "user"
     });
 
     const userObject = user.toObject();
@@ -31,6 +30,31 @@ const registerUser = async (userData) => {
 
 };
 
+const loginUser = async (userData) => {
+    const { email, password } = userData;
+    const user = await User.findOne({ email });
+    if (!user) {
+        throw new AppError("Invalid credentials", 401);
+    }
+    const isPasswordValid = await bcrypt.compare(password, user.password);
+    if (!isPasswordValid) {
+        throw new AppError("Invalid credentials", 401);
+    }
+    const userObject = user.toObject();
+    delete userObject.password;
+    const accessToken = generateAccessToken({
+        id: user._id,
+        email: user.email,
+        role: user.role
+    });
+    return {
+        user: userObject,
+        accessToken
+    };
+
+};
+
 module.exports = {
     registerUser,
+    loginUser
 };
