@@ -1,6 +1,6 @@
-const { NODE_ENV, JWT_ACCESS_COOKIE_MAX_AGE } = require("../config/env");
+const { NODE_ENV, JWT_ACCESS_COOKIE_MAX_AGE, JWT_REFRESH_COOKIE_MAX_AGE } = require("../config/env");
 
-const buildAuthCookie = (token) => {
+const buildAccessTokenCookie = (token) => {
     return {
         name: "accessToken",
         value: token,
@@ -13,4 +13,17 @@ const buildAuthCookie = (token) => {
     }
 };
 
-module.exports = { buildAuthCookie };
+const buildRefreshTokenCookie = (token) => {
+    return {
+        name: "refreshToken",
+        value: token,
+        options: {
+            httpOnly: true,
+            secure: NODE_ENV === "production",
+            sameSite: "lax",
+            maxAge: JWT_REFRESH_COOKIE_MAX_AGE
+        }
+    }
+};
+
+module.exports = { buildAccessTokenCookie, buildRefreshTokenCookie };

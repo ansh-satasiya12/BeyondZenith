@@ -1,11 +1,13 @@
-const { registerUser, loginUser } = require('../services/auth.service');
-const { buildAuthCookie } = require('../utils/cookie');
+const { registerUser, loginUser, refreshAccessToken } = require('../services/auth.service');
+const { buildAccessTokenCookie, buildRefreshTokenCookie } = require('../utils/cookie');
 
 
 const registercontroller = async (req, res) => {
     const result = await registerUser(req.body);
-    const cookie = buildAuthCookie(result.accessToken);
-    res.cookie(cookie.name, cookie.value, cookie.options);
+    const accessTokenCookie = buildAccessTokenCookie(result.accessToken);
+    const refreshTokenCookie = buildRefreshTokenCookie(result.refreshToken);
+    res.cookie(accessTokenCookie.name, accessTokenCookie.value, accessTokenCookie.options);
+    res.cookie(refreshTokenCookie.name, refreshTokenCookie.value, refreshTokenCookie.options);
 
     res.status(201).json({
         success: true,
@@ -18,8 +20,10 @@ const registercontroller = async (req, res) => {
 
 const loginController = async (req, res) => {
     const result = await loginUser(req.body);
-    const cookie = buildAuthCookie(result.accessToken);
-    res.cookie(cookie.name, cookie.value, cookie.options);
+    const accessTokenCookie = buildAccessTokenCookie(result.accessToken);
+    const refreshTokenCookie = buildRefreshTokenCookie(result.refreshToken);
+    res.cookie(accessTokenCookie.name, accessTokenCookie.value, accessTokenCookie.options);
+    res.cookie(refreshTokenCookie.name, refreshTokenCookie.value, refreshTokenCookie.options);
     res.status(200).json({
         success: true,
         message: "User logged in successfully",
@@ -38,8 +42,23 @@ const getMe = (req, res) => {
     });
 };
 
+const refreshController = async (req, res) => {
+    const refreshToken = req.cookies.refreshToken;
+    const result = await refreshAccessToken(refreshToken);
+    const accessTokenCookie = buildAccessTokenCookie(result.accessToken);
+    const refreshTokenCookie = buildRefreshTokenCookie(result.newRefreshToken);
+    res.cookie(accessTokenCookie.name, accessTokenCookie.value, accessTokenCookie.options);
+    res.cookie(refreshTokenCookie.name, refreshTokenCookie.value, refreshTokenCookie.options);
+    res.status(200).json({
+        success: true,
+        message: "Tokens refreshed successfully",
+    });
+
+};
+
 module.exports = {
     registercontroller,
     loginController,
-    getMe
+    getMe,
+    refreshController
 };

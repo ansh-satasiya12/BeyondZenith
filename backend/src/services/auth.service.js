@@ -1,7 +1,9 @@
 const User = require('../models/user.model');
 const bcrypt = require('bcrypt');
 const AppError = require('../utils/AppError');
-const { generateAccessToken } = require('../utils/jwt');
+const { generateAccessToken, generateRefreshToken } = require('../utils/jwt');
+const { JWT_REFRESH_SECRET } = require('../config/env');
+const jwt = require('jsonwebtoken');
 
 const registerUser = async (userData) => {
     const { name, email, password } = userData;
@@ -23,9 +25,20 @@ const registerUser = async (userData) => {
         email: user.email,
         role: user.role
     });
+
+    const refreshToken = generateRefreshToken({
+        id: user._id,
+        email: user.email,
+        role: user.role
+    });
+
+    user.refreshToken = refreshToken;
+    await user.save();
+
     return {
         user: userObject,
-        accessToken
+        accessToken,
+        refreshToken
     };
 
 };
@@ -47,14 +60,61 @@ const loginUser = async (userData) => {
         email: user.email,
         role: user.role
     });
+
+    const refreshToken = generateRefreshToken({
+        id: user._id,
+        email: user.email,
+        role: user.role
+    });
+
+    user.refreshToken = refreshToken;
+    await user.save();
     return {
         user: userObject,
-        accessToken
+        accessToken,
+        refreshToken
     };
 
 };
 
+const refreshAccessToken = async (refreshToken) => {
+    if (!refreshToken) {
+        throw new AppError("Unauthorized", 401);
+    }
+    let decodedToken;
+    try {
+        decodedToken = jwt.verify(refreshToken, JWT_REFRESH_SECRET);
+    } catch (error) {
+        throw new AppError("unauthorized", 401);
+    }
+
+    const user = await User.findById(decodedToken.id);
+    if (!user) {
+        throw new AppError("unauthorized", 401);
+    }
+    if (user.refreshToken !== refreshToken) {
+        throw new AppError("unauthorized", 401);
+    }
+    const accessToken = generateAccessToken({
+        id: user._id,
+        email: user.email,
+        role: user.role
+    });
+    const newRefreshToken = generateRefreshToken({
+        id: user._id,
+        email: user.email,
+        role: user.role
+    });
+    user.refreshToken = newRefreshToken;
+    await user.save();
+    return {
+        accessToken,
+        newRefreshToken
+    };
+};
+
 module.exports = {
     registerUser,
-    loginUser
+    loginUser,
+    refreshAccessToken
 };
