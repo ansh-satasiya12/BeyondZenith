@@ -26,4 +26,26 @@ const buildRefreshTokenCookie = (token) => {
     }
 };
 
-module.exports = { buildAccessTokenCookie, buildRefreshTokenCookie };
+const buildClearAccessTokenCookie = () => {
+    return {
+        name: "accessToken",
+        options: {
+            httpOnly: true,
+            secure: NODE_ENV === "production",
+            sameSite: "lax",
+        }
+    }
+};
+
+const buildClearRefreshTokenCookie = () => {
+    return {
+        name: "refreshToken",
+        options: {
+            httpOnly: true,
+            secure: NODE_ENV === "production",
+            sameSite: "lax",
+        }
+    }
+};
+
+module.exports = { buildAccessTokenCookie, buildRefreshTokenCookie, buildClearAccessTokenCookie, buildClearRefreshTokenCookie };

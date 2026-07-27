@@ -1,5 +1,5 @@
-const { registerUser, loginUser, refreshAccessToken } = require('../services/auth.service');
-const { buildAccessTokenCookie, buildRefreshTokenCookie } = require('../utils/cookie');
+const { registerUser, loginUser, refreshAccessToken, logoutUser, changePassword } = require('../services/auth.service');
+const { buildAccessTokenCookie, buildRefreshTokenCookie, buildClearAccessTokenCookie, buildClearRefreshTokenCookie } = require('../utils/cookie');
 
 
 const registercontroller = async (req, res) => {
@@ -53,12 +53,37 @@ const refreshController = async (req, res) => {
         success: true,
         message: "Tokens refreshed successfully",
     });
+};
 
+const logoutController = async (req, res) => {
+    await logoutUser(req.user.id);
+    const accessTokenCookie = buildClearAccessTokenCookie();
+    const refreshTokenCookie = buildClearRefreshTokenCookie();
+    res.clearCookie(accessTokenCookie.name, accessTokenCookie.options);
+    res.clearCookie(refreshTokenCookie.name, refreshTokenCookie.options);
+    res.status(200).json({
+        success: true,
+        message: "User logged out successfully",
+    });
+};
+
+const changePasswordController = async (req, res) => {
+    await changePassword(req.user.id, req.body.currentPassword, req.body.newPassword);
+    const accessTokenCookie = buildClearAccessTokenCookie();
+    const refreshTokenCookie = buildClearRefreshTokenCookie();
+    res.clearCookie(accessTokenCookie.name, accessTokenCookie.options);
+    res.clearCookie(refreshTokenCookie.name, refreshTokenCookie.options);
+    res.status(200).json({
+        success: true,
+        message: "Password changed successfully, please login again",
+    });
 };
 
 module.exports = {
     registercontroller,
     loginController,
     getMe,
-    refreshController
+    refreshController,
+    logoutController,
+    changePasswordController
 };

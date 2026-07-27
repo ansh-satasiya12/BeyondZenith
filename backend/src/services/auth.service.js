@@ -113,8 +113,33 @@ const refreshAccessToken = async (refreshToken) => {
     };
 };
 
+const logoutUser = async (userId) => {
+    const user = await User.findById(userId);
+    if (!user) {
+        throw new AppError("unauthorized", 401);
+    }
+    user.refreshToken = null;
+    await user.save();
+}
+
+const changePassword = async (userId, currentPassword, newPassword) => {
+    const user = await User.findById(userId);
+    if (!user) {
+        throw new AppError("unauthorized", 401);
+    }
+    const isPasswordValid = await bcrypt.compare(currentPassword, user.password);
+    if (!isPasswordValid) {
+        throw new AppError("Invalid credentials", 401);
+    }
+    user.password = await bcrypt.hash(newPassword, 10);
+    user.refreshToken = null;
+    await user.save();
+}
+
 module.exports = {
     registerUser,
     loginUser,
-    refreshAccessToken
+    refreshAccessToken,
+    logoutUser,
+    changePassword
 };
