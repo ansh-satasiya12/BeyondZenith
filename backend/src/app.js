@@ -7,6 +7,7 @@ const morgan = require('morgan');
 
 const authRouter = require('./routes/auth.routes');
 const healthRouter = require('./routes/health.route');
+const githubRouter = require('./routes/github.route');
 
 const notFound = require('./middlewares/notFound.middleware');
 const errorMiddleware = require('./middlewares/error.middleware');
@@ -23,6 +24,7 @@ app.use(morgan("dev"));
 
 app.use('/api/v1/auth', authRouter);
 app.use('/api/v1/health', healthRouter);
+app.use('/api/v1/github', githubRouter);
 
 app.use(notFound);
 
