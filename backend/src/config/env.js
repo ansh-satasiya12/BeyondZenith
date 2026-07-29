@@ -15,6 +15,7 @@ const JWT_REFRESH_COOKIE_MAX_AGE = Number(process.env.JWT_REFRESH_COOKIE_MAX_AGE
 const GITHUB_CLIENT_ID = process.env.GITHUB_CLIENT_ID;
 const GITHUB_CLIENT_SECRET = process.env.GITHUB_CLIENT_SECRET;
 const GITHUB_CALLBACK_URL = process.env.GITHUB_CALLBACK_URL;
+const GITHUB_TOKEN_ENCRYPTION_KEY = process.env.GITHUB_TOKEN_ENCRYPTION_KEY;
 
 if (!PORT) {
   throw new Error('PORT environment variable is missing');
@@ -36,6 +37,10 @@ if (!GITHUB_CALLBACK_URL) {
   throw new Error('GITHUB_CALLBACK_URL environment variable is missing');
 }
 
+if (!GITHUB_TOKEN_ENCRYPTION_KEY) {
+  throw new Error('GITHUB_TOKEN_ENCRYPTION_KEY environment variable is missing');
+}
+
 module.exports = Object.freeze({
   PORT,
   NODE_ENV,
@@ -48,5 +53,6 @@ module.exports = Object.freeze({
   JWT_REFRESH_COOKIE_MAX_AGE,
   GITHUB_CLIENT_ID,
   GITHUB_CLIENT_SECRET,
-  GITHUB_CALLBACK_URL
+  GITHUB_CALLBACK_URL,
+  GITHUB_TOKEN_ENCRYPTION_KEY
 });

@@ -48,4 +48,9 @@ const buildClearRefreshTokenCookie = () => {
     }
 };
 
-module.exports = { buildAccessTokenCookie, buildRefreshTokenCookie, buildClearAccessTokenCookie, buildClearRefreshTokenCookie };
+module.exports = {
+    buildAccessTokenCookie,
+    buildRefreshTokenCookie,
+    buildClearAccessTokenCookie,
+    buildClearRefreshTokenCookie
+};

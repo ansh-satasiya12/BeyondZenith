@@ -30,6 +30,9 @@ const userSchema = new mongoose.Schema(
         github: {
             id: String,
             username: String,
+            name: String,
+            avatarUrl: String,
+            profileUrl: String,
             accessToken: String,
             connectedAt: Date,
         }
