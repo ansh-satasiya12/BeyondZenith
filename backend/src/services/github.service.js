@@ -9,7 +9,7 @@ const getGitHubAuthUrl = (state) => {
 
     url.searchParams.set("client_id", GITHUB_CLIENT_ID);
     url.searchParams.set("redirect_uri", GITHUB_CALLBACK_URL);
-    url.searchParams.set("scope", "read:user user:email");
+    url.searchParams.set("scope", "read:user user:email repo");
     url.searchParams.set("state", state);
 
     return url.toString();
@@ -185,6 +185,82 @@ const syncGitHubRepositories = async (userId) => {
     };
 };
 
+const VALID_SORT_FIELDS = ['name', 'stars', 'forks', 'updatedAtGithub', 'createdAtGithub'];
+
+const getRepositories = async (userId, query = {}) => {
+    const {
+        page = 1,
+        limit = 10,
+        sortBy = 'updatedAtGithub',
+        order = 'desc',
+        language,
+        visibility,
+        isFork,
+        isArchived,
+        search,
+    } = query;
+
+    const parsedPage = Math.max(1, parseInt(page, 10) || 1);
+    const parsedLimit = Math.min(100, Math.max(1, parseInt(limit, 10) || 10));
+    const skip = (parsedPage - 1) * parsedLimit;
+
+    const filter = { owner: userId };
+
+    if (language) {
+        filter.language = language;
+    }
+
+    if (visibility) {
+        filter.visibility = visibility;
+    }
+
+    if (isFork !== undefined) {
+        filter.isFork = isFork === 'true' || isFork === true;
+    }
+
+    if (isArchived !== undefined) {
+        filter.isArchived = isArchived === 'true' || isArchived === true;
+    }
+
+    if (search) {
+        filter.name = { $regex: search, $options: 'i' };
+    }
+
+    const sortField = VALID_SORT_FIELDS.includes(sortBy) ? sortBy : 'updatedAtGithub';
+    const sortOrder = order === 'asc' ? 1 : -1;
+    const sort = { [sortField]: sortOrder };
+
+    const [repositories, totalItems] = await Promise.all([
+        Repository.find(filter).sort(sort).skip(skip).limit(parsedLimit).lean(),
+        Repository.countDocuments(filter),
+    ]);
+
+    const totalPages = Math.ceil(totalItems / parsedLimit);
+
+    return {
+        repositories,
+        pagination: {
+            page: parsedPage,
+            limit: parsedLimit,
+            totalItems,
+            totalPages,
+        },
+    };
+};
+
+const getRepositoryById = async (userId, repositoryId) => {
+    const repository = await Repository.findOne({
+        _id: repositoryId,
+        owner: userId,
+    }).lean();
+
+    if (!repository) {
+        throw new AppError("Repository not found", 404);
+    }
+
+    return repository;
+};
+
 module.exports = {
     getGitHubAuthUrl,
     exchangeCodeForAccessToken,
@@ -193,5 +269,7 @@ module.exports = {
     getDecryptedGitHubToken,
     fetchGitHubRepositories,
     normalizeRepositoryData,
-    syncGitHubRepositories
+    syncGitHubRepositories,
+    getRepositories,
+    getRepositoryById
 };

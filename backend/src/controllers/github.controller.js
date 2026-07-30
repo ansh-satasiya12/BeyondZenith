@@ -3,7 +3,9 @@ const {
     exchangeCodeForAccessToken,
     fetchGitHubProfile,
     connectGitHub,
-    syncGitHubRepositories
+    syncGitHubRepositories,
+    getRepositories,
+    getRepositoryById
 } = require('../services/github.service');
 const AppError = require('../utils/AppError');
 const { generateOAuthState } = require('../utils/oauth');
@@ -58,8 +60,31 @@ const syncGitHubController = async (req, res) => {
     });
 };
 
+const listRepositoriesController = async (req, res) => {
+    const userId = req.user.id;
+    const data = await getRepositories(userId, req.query);
+
+    return res.status(200).json({
+        success: true,
+        data,
+    });
+};
+
+const getRepositoryController = async (req, res) => {
+    const userId = req.user.id;
+    const { id } = req.params;
+    const repository = await getRepositoryById(userId, id);
+
+    return res.status(200).json({
+        success: true,
+        data: { repository },
+    });
+};
+
 module.exports = {
     connectGitHubController,
     callbackGitHubController,
-    syncGitHubController
+    syncGitHubController,
+    listRepositoriesController,
+    getRepositoryController
 };
