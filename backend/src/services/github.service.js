@@ -261,6 +261,143 @@ const getRepositoryById = async (userId, repositoryId) => {
     return repository;
 };
 
+const getRepositoryAnalytics = async (userId) => {
+    const ownerObjectId = new (require('mongoose').Types.ObjectId)(userId);
+
+    const [result] = await Repository.aggregate([
+        { $match: { owner: ownerObjectId } },
+        {
+            $facet: {
+                summary: [
+                    {
+                        $group: {
+                            _id: null,
+                            total: { $sum: 1 },
+                            public: {
+                                $sum: { $cond: [{ $eq: ['$visibility', 'public'] }, 1, 0] },
+                            },
+                            private: {
+                                $sum: { $cond: [{ $eq: ['$visibility', 'private'] }, 1, 0] },
+                            },
+                            forked: {
+                                $sum: { $cond: ['$isFork', 1, 0] },
+                            },
+                            archived: {
+                                $sum: { $cond: ['$isArchived', 1, 0] },
+                            },
+                        },
+                    },
+                ],
+                metrics: [
+                    {
+                        $group: {
+                            _id: null,
+                            totalStars: { $sum: '$stars' },
+                            totalForks: { $sum: '$forks' },
+                            totalWatchers: { $sum: '$watchers' },
+                            totalSize: { $sum: '$size' },
+                        },
+                    },
+                ],
+                languageDistribution: [
+                    { $match: { language: { $ne: null } } },
+                    {
+                        $group: {
+                            _id: '$language',
+                            count: { $sum: 1 },
+                        },
+                    },
+                    { $sort: { count: -1 } },
+                    {
+                        $project: {
+                            _id: 0,
+                            language: '$_id',
+                            count: 1,
+                        },
+                    },
+                ],
+                topRepositories: [
+                    { $sort: { stars: -1 } },
+                    { $limit: 5 },
+                    {
+                        $project: {
+                            _id: 0,
+                            name: 1,
+                            stars: 1,
+                            forks: 1,
+                            language: 1,
+                            htmlUrl: 1,
+                        },
+                    },
+                ],
+                recentRepositories: [
+                    { $sort: { updatedAtGithub: -1 } },
+                    { $limit: 5 },
+                    {
+                        $project: {
+                            _id: 0,
+                            name: 1,
+                            stars: 1,
+                            forks: 1,
+                            language: 1,
+                            htmlUrl: 1,
+                            updatedAtGithub: 1,
+                        },
+                    },
+                ],
+            },
+        },
+    ]);
+
+    const summaryDoc = result.summary[0] || {};
+    const metricsDoc = result.metrics[0] || {};
+
+    return {
+        summary: {
+            total: summaryDoc.total || 0,
+            public: summaryDoc.public || 0,
+            private: summaryDoc.private || 0,
+            forked: summaryDoc.forked || 0,
+            archived: summaryDoc.archived || 0,
+        },
+        metrics: {
+            totalStars: metricsDoc.totalStars || 0,
+            totalForks: metricsDoc.totalForks || 0,
+            totalWatchers: metricsDoc.totalWatchers || 0,
+            totalSize: metricsDoc.totalSize || 0,
+        },
+        languageDistribution: result.languageDistribution,
+        topRepositories: result.topRepositories,
+        recentRepositories: result.recentRepositories,
+    };
+};
+
+const getGitHubDashboard = async (userId) => {
+    const user = await User.findById(userId).lean();
+
+    if (!user) {
+        throw new AppError("User not found", 404);
+    }
+
+    const analytics = await getRepositoryAnalytics(userId);
+
+    return {
+        profile: {
+            id: user.github?.id || null,
+            username: user.github?.username || null,
+            name: user.github?.name || null,
+            avatarUrl: user.github?.avatarUrl || null,
+            profileUrl: user.github?.profileUrl || null,
+            connectedAt: user.github?.connectedAt || null,
+        },
+        summary: analytics.summary,
+        metrics: analytics.metrics,
+        languageDistribution: analytics.languageDistribution,
+        topRepositories: analytics.topRepositories,
+        recentRepositories: analytics.recentRepositories,
+    };
+};
+
 module.exports = {
     getGitHubAuthUrl,
     exchangeCodeForAccessToken,
@@ -271,5 +408,7 @@ module.exports = {
     normalizeRepositoryData,
     syncGitHubRepositories,
     getRepositories,
-    getRepositoryById
+    getRepositoryById,
+    getRepositoryAnalytics,
+    getGitHubDashboard
 };
