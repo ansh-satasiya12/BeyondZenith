@@ -92,6 +92,28 @@ const repositorySchema = new mongoose.Schema(
             type: Boolean,
             default: false,
         },
+        languageBreakdown: {
+            type: Map,
+            of: Number,
+            default: {},
+        },
+
+        readme: {
+            type: String,
+            default: null,
+        },
+
+        latestCommitSha: {
+            type: String,
+            default: null,
+            trim: true,
+        },
+
+        latestCommitUrl: {
+            type: String,
+            default: null,
+            trim: true,
+        }
     },
     {
         timestamps: true,

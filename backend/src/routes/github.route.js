@@ -8,7 +8,9 @@ const {
     listRepositoriesController,
     getRepositoryController,
     analyticsController,
-    dashboardController
+    dashboardController,
+    enhanceRepositoryController,
+    syncGitHubProfileController
 } = require('../controllers/github.controller');
 const { protect } = require('../middlewares/auth.middleware');
 const asyncHandler = require('../utils/asyncHandler');
@@ -20,5 +22,7 @@ router.get('/repositories', protect, asyncHandler(listRepositoriesController));
 router.get('/repositories/:id', protect, asyncHandler(getRepositoryController));
 router.get('/analytics', protect, asyncHandler(analyticsController));
 router.get('/dashboard', protect, asyncHandler(dashboardController));
+router.post("/repositories/:id/enhance", protect, asyncHandler(enhanceRepositoryController));
+router.post("/profile/sync", protect, asyncHandler(syncGitHubProfileController));
 
 module.exports = router;

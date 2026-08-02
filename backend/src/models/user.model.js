@@ -35,6 +35,44 @@ const userSchema = new mongoose.Schema(
             profileUrl: String,
             accessToken: String,
             connectedAt: Date,
+            followers: {
+                type: Number,
+                default: 0,
+            },
+
+            following: {
+                type: Number,
+                default: 0,
+            },
+
+            publicRepos: {
+                type: Number,
+                default: 0,
+            },
+
+            publicGists: {
+                type: Number,
+                default: 0,
+            },
+
+            organizations: [
+                {
+                    id: String,
+                    login: String,
+                    avatarUrl: String,
+                    url: String,
+                },
+            ],
+            pinnedRepositories: [
+                {
+                    id: String,
+                    name: String,
+                    description: String,
+                    stars: Number,
+                    language: String,
+                    htmlUrl: String,
+                },
+            ],
         }
     },
     {

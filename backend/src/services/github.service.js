@@ -398,6 +398,258 @@ const getGitHubDashboard = async (userId) => {
     };
 };
 
+const fetchRepositoryLanguages = async (accessToken, owner, repoName) => {
+    const response = await fetch(
+        `https://api.github.com/repos/${owner}/${repoName}/languages`,
+        {
+            headers: {
+                Authorization: `Bearer ${accessToken}`,
+                "User-Agent": "BeyondZenith-App",
+                Accept: "application/json",
+            },
+        }
+    );
+
+    const data = await response.json();
+
+    if (!response.ok) {
+        throw new AppError(
+            data.message || "Failed to fetch repository languages",
+            response.status
+        );
+    }
+
+    return data;
+};
+
+const fetchRepositoryReadme = async (accessToken, owner, repoName) => {
+    const response = await fetch(
+        `https://api.github.com/repos/${owner}/${repoName}/readme`,
+        {
+            headers: {
+                Authorization: `Bearer ${accessToken}`,
+                "User-Agent": "BeyondZenith-App",
+                Accept: "application/json",
+            },
+        }
+    );
+
+    if (response.status === 404) {
+        return null;
+    }
+
+    const data = await response.json();
+
+    if (!response.ok) {
+        throw new AppError(
+            data.message || "Failed to fetch repository README",
+            response.status
+        );
+    }
+
+    return Buffer.from(data.content, "base64").toString("utf8");
+};
+
+const fetchDefaultBranchInfo = async (
+    accessToken,
+    owner,
+    repoName,
+    defaultBranch
+) => {
+    const response = await fetch(
+        `https://api.github.com/repos/${owner}/${repoName}/branches/${defaultBranch}`,
+        {
+            headers: {
+                Authorization: `Bearer ${accessToken}`,
+                "User-Agent": "BeyondZenith-App",
+                Accept: "application/json",
+            },
+        }
+    );
+
+    const data = await response.json();
+
+    if (!response.ok) {
+        throw new AppError(
+            data.message || "Failed to fetch branch information",
+            response.status
+        );
+    }
+
+    return {
+        latestCommitSha: data.commit.sha,
+        latestCommitUrl: data.commit.url,
+    };
+};
+
+const enhanceRepository = async (userId, repositoryId) => {
+    const [user, repository] = await Promise.all([
+        User.findById(userId),
+        Repository.findOne({
+            _id: repositoryId,
+            owner: userId,
+        }),
+    ]);
+
+    if (!user) {
+        throw new AppError("User not found", 404);
+    }
+
+    if (!repository) {
+        throw new AppError("Repository not found", 404);
+    }
+
+    const accessToken = getDecryptedGitHubToken(user);
+
+    if (!accessToken) {
+        throw new AppError("GitHub account not connected", 400);
+    }
+
+    const owner = user.github.username;
+
+    const [languageBreakdown, readme, branchInfo] = await Promise.all([
+        fetchRepositoryLanguages(accessToken, owner, repository.name),
+        fetchRepositoryReadme(accessToken, owner, repository.name),
+        fetchDefaultBranchInfo(
+            accessToken,
+            owner,
+            repository.name,
+            repository.defaultBranch
+        ),
+    ]);
+
+    repository.languageBreakdown = languageBreakdown;
+    repository.readme = readme;
+    repository.latestCommitSha = branchInfo.latestCommitSha;
+    repository.latestCommitUrl = branchInfo.latestCommitUrl;
+
+    await repository.save();
+
+    return repository;
+};
+
+const fetchOrganizations = async (accessToken) => {
+    const response = await fetch("https://api.github.com/user/orgs", {
+        headers: {
+            Authorization: `Bearer ${accessToken}`,
+            "User-Agent": "BeyondZenith-App",
+            Accept: "application/json",
+        },
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+        throw new AppError(
+            data.message || "Failed to fetch organizations",
+            response.status
+        );
+    }
+
+    return data.map((org) => ({
+        id: String(org.id),
+        login: org.login,
+        avatarUrl: org.avatar_url,
+        url: org.url,
+    }));
+};
+
+const fetchPinnedRepositories = async (accessToken) => {
+    const query = `
+        query {
+            viewer {
+                pinnedItems(first: 6, types: REPOSITORY) {
+                    nodes {
+                        ... on Repository {
+                            id
+                            name
+                            description
+                            url
+                            stargazerCount
+                            primaryLanguage {
+                                name
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    `;
+
+    const response = await fetch("https://api.github.com/graphql", {
+        method: "POST",
+        headers: {
+            Authorization: `Bearer ${accessToken}`,
+            "User-Agent": "BeyondZenith-App",
+            "Content-Type": "application/json",
+            Accept: "application/json",
+        },
+        body: JSON.stringify({ query }),
+    });
+
+    const data = await response.json();
+
+    if (!response.ok || data.errors) {
+        throw new AppError(
+            data.errors?.[0]?.message || "Failed to fetch pinned repositories",
+            response.status || 500
+        );
+    }
+
+    return data.data.viewer.pinnedItems.nodes.map((repo) => ({
+        id: repo.id,
+        name: repo.name,
+        description: repo.description,
+        stars: repo.stargazerCount,
+        language: repo.primaryLanguage?.name || null,
+        htmlUrl: repo.url,
+    }));
+};
+
+const syncGitHubProfile = async (userId) => {
+    const user = await User.findById(userId);
+
+    if (!user) {
+        throw new AppError("User not found", 404);
+    }
+
+    const accessToken = getDecryptedGitHubToken(user);
+
+    if (!accessToken) {
+        throw new AppError("GitHub account not connected", 400);
+    }
+
+    const [profile, organizations, pinnedRepositories] = await Promise.all([
+        fetchGitHubProfile(accessToken),
+        fetchOrganizations(accessToken),
+        fetchPinnedRepositories(accessToken),
+    ]);
+
+    user.github.followers = profile.followers ?? 0;
+    user.github.following = profile.following ?? 0;
+    user.github.publicRepos = profile.public_repos ?? 0;
+    user.github.publicGists = profile.public_gists ?? 0;
+    user.github.organizations = organizations;
+    user.github.pinnedRepositories = pinnedRepositories;
+
+    await user.save();
+
+    return {
+        id: user.github.id,
+        username: user.github.username,
+        name: user.github.name,
+        avatarUrl: user.github.avatarUrl,
+        profileUrl: user.github.profileUrl,
+        connectedAt: user.github.connectedAt,
+        followers: user.github.followers,
+        following: user.github.following,
+        publicRepos: user.github.publicRepos,
+        publicGists: user.github.publicGists,
+        organizations: user.github.organizations,
+        pinnedRepositories: user.github.pinnedRepositories,
+    };
+};
+
 module.exports = {
     getGitHubAuthUrl,
     exchangeCodeForAccessToken,
@@ -410,5 +662,7 @@ module.exports = {
     getRepositories,
     getRepositoryById,
     getRepositoryAnalytics,
-    getGitHubDashboard
+    getGitHubDashboard,
+    enhanceRepository,
+    syncGitHubProfile
 };

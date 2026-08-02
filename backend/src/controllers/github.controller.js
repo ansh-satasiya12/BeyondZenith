@@ -7,7 +7,9 @@ const {
     getRepositories,
     getRepositoryById,
     getRepositoryAnalytics,
-    getGitHubDashboard
+    getGitHubDashboard,
+    enhanceRepository,
+    syncGitHubProfile
 } = require('../services/github.service');
 const AppError = require('../utils/AppError');
 const { generateOAuthState } = require('../utils/oauth');
@@ -104,6 +106,33 @@ const dashboardController = async (req, res) => {
     });
 };
 
+const enhanceRepositoryController = async (req, res) => {
+    const userId = req.user.id;
+    const { id } = req.params;
+
+    const repository = await enhanceRepository(userId, id);
+
+    return res.status(200).json({
+        success: true,
+        message: "Repository enhanced successfully",
+        data: {
+            repository,
+        },
+    });
+};
+
+const syncGitHubProfileController = async (req, res) => {
+    const profile = await syncGitHubProfile(req.user.id);
+
+    return res.status(200).json({
+        success: true,
+        message: "GitHub profile synchronized successfully",
+        data: {
+            profile,
+        },
+    });
+};
+
 module.exports = {
     connectGitHubController,
     callbackGitHubController,
@@ -111,5 +140,7 @@ module.exports = {
     listRepositoriesController,
     getRepositoryController,
     analyticsController,
-    dashboardController
+    dashboardController,
+    enhanceRepositoryController,
+    syncGitHubProfileController,
 };
