@@ -9,7 +9,8 @@ const {
     getRepositoryAnalytics,
     getGitHubDashboard,
     enhanceRepository,
-    syncGitHubProfile
+    syncGitHubProfile,
+    unlinkGitHub,
 } = require('../services/github.service');
 const AppError = require('../utils/AppError');
 const { generateOAuthState } = require('../utils/oauth');
@@ -133,6 +134,17 @@ const syncGitHubProfileController = async (req, res) => {
     });
 };
 
+const unlinkGitHubController = async (req, res) => {
+    const userId = req.user.id;
+    const summary = await unlinkGitHub(userId);
+
+    return res.status(200).json({
+        success: true,
+        message: "GitHub account unlinked successfully",
+        data: summary,
+    });
+};
+
 module.exports = {
     connectGitHubController,
     callbackGitHubController,
@@ -143,4 +155,5 @@ module.exports = {
     dashboardController,
     enhanceRepositoryController,
     syncGitHubProfileController,
+    unlinkGitHubController,
 };

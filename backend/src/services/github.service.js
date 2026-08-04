@@ -650,6 +650,27 @@ const syncGitHubProfile = async (userId) => {
     };
 };
 
+const unlinkGitHub = async (userId) => {
+    const user = await User.findById(userId);
+
+    if (!user) {
+        throw new AppError("User not found", 404);
+    }
+
+    if (!user.github || !user.github.id) {
+        throw new AppError("GitHub account not connected", 400);
+    }
+
+    const deleteResult = await Repository.deleteMany({ owner: userId });
+
+    user.github = undefined;
+    await user.save();
+
+    return {
+        repositoriesRemoved: deleteResult.deletedCount || 0,
+    };
+};
+
 module.exports = {
     getGitHubAuthUrl,
     exchangeCodeForAccessToken,
@@ -664,5 +685,6 @@ module.exports = {
     getRepositoryAnalytics,
     getGitHubDashboard,
     enhanceRepository,
-    syncGitHubProfile
+    syncGitHubProfile,
+    unlinkGitHub,
 };

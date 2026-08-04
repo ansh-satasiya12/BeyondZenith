@@ -10,7 +10,8 @@ const {
     analyticsController,
     dashboardController,
     enhanceRepositoryController,
-    syncGitHubProfileController
+    syncGitHubProfileController,
+    unlinkGitHubController,
 } = require('../controllers/github.controller');
 const { protect } = require('../middlewares/auth.middleware');
 const asyncHandler = require('../utils/asyncHandler');
@@ -24,5 +25,6 @@ router.get('/analytics', protect, asyncHandler(analyticsController));
 router.get('/dashboard', protect, asyncHandler(dashboardController));
 router.post("/repositories/:id/enhance", protect, asyncHandler(enhanceRepositoryController));
 router.post("/profile/sync", protect, asyncHandler(syncGitHubProfileController));
+router.delete('/unlink', protect, asyncHandler(unlinkGitHubController));
 
 module.exports = router;
