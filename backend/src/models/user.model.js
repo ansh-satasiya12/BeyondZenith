@@ -73,6 +73,22 @@ const userSchema = new mongoose.Schema(
                     htmlUrl: String,
                 },
             ],
+        },
+        codeforces: {
+            handle: String,
+            rating: {
+                type: Number,
+                default: 0,
+            },
+            maxRating: {
+                type: Number,
+                default: 0,
+            },
+            rank: String,
+            maxRank: String,
+            avatar: String,
+            organization: String,
+            connectedAt: Date,
         }
     },
     {
