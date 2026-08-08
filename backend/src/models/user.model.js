@@ -89,6 +89,16 @@ const userSchema = new mongoose.Schema(
             avatar: String,
             organization: String,
             connectedAt: Date,
+        },
+        leetcode: {
+            username: String,
+            name: String,
+            avatarUrl: String,
+            ranking: {
+                type: Number,
+                default: 0,
+            },
+            connectedAt: Date,
         }
     },
     {
