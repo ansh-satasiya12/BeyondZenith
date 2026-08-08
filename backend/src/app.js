@@ -9,6 +9,8 @@ const authRouter = require('./routes/auth.routes');
 const healthRouter = require('./routes/health.route');
 const githubRouter = require('./routes/github.route');
 const codeforcesRoutes = require('./routes/codeforces.route');
+const leetCodeRouter = require('./routes/leetcode.route');
+const dashboardRouter = require('./routes/dashboard.route');
 
 const notFound = require('./middlewares/notFound.middleware');
 const errorMiddleware = require('./middlewares/error.middleware');
@@ -27,6 +29,8 @@ app.use('/api/v1/auth', authRouter);
 app.use('/api/v1/health', healthRouter);
 app.use('/api/v1/github', githubRouter);
 app.use('/api/v1/codeforces', codeforcesRoutes);
+app.use('/api/v1/leetcode', leetCodeRouter);
+app.use('/api/v1/dashboard', dashboardRouter);
 
 app.use(notFound);
 
