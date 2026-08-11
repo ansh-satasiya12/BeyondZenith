@@ -28,6 +28,16 @@ export function AuthProvider({ children }) {
         restoreSession();
     }, []);
 
+    const refreshUser = async () => {
+        try {
+            const data = await getMe();
+            setUser(data.data.user);
+            return data.data.user;
+        } catch {
+            setUser(null);
+        }
+    };
+
     const logout = async () => {
         try {
             await logoutUser();
@@ -39,6 +49,7 @@ export function AuthProvider({ children }) {
     const value = {
         user,
         setUser,
+        refreshUser,
         logout,
         loading,
         isAuthenticated: Boolean(user),

@@ -48,10 +48,9 @@ const callbackGitHubController = async (req, res) => {
     const profile = await fetchGitHubProfile(accessToken);
     await connectGitHub(userId, profile, accessToken);
 
-    return res.status(200).json({
-        success: true,
-        message: "GitHub account connected successfully"
-    });
+    return res.redirect(
+        `${process.env.FRONTEND_URL}/settings?github=connected`
+    );
 };
 
 const syncGitHubController = async (req, res) => {

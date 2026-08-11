@@ -1,11 +1,24 @@
 import { useState } from "react";
 import { useTheme } from "../context/ThemeContext";
+import { useAuth } from "../context/AuthContext";
 import { changePassword } from "../services/auth.service";
-import { Sun, Moon, Lock, Shield, CheckCircle2, AlertCircle } from "lucide-react";
+import {
+    unlinkGitHub,
+    connectCodeforces,
+    unlinkCodeforces,
+    connectLeetCode,
+    unlinkLeetCode,
+    getGitHubConnectUrl,
+} from "../services/account.service";
+import {
+    Sun, Moon, Lock, Shield, CheckCircle2, AlertCircle,
+    GitBranch, Code2, Code, Link2, Unlink, Loader2, X,
+} from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 function Settings() {
     const { theme, setTheme } = useTheme();
+    const { user, refreshUser } = useAuth();
     const navigate = useNavigate();
 
     const [formData, setFormData] = useState({
@@ -16,6 +29,79 @@ function Settings() {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
     const [successMessage, setSuccessMessage] = useState("");
+
+    const [accountLoading, setAccountLoading] = useState("");
+    const [accountError, setAccountError] = useState("");
+    const [accountSuccess, setAccountSuccess] = useState("");
+    const [confirmUnlink, setConfirmUnlink] = useState("");
+    const [connectModalPlatform, setConnectModalPlatform] = useState("");
+    const [connectInput, setConnectInput] = useState("");
+
+    const isGitHubConnected = Boolean(user?.github?.id);
+    const isCodeforcesConnected = Boolean(user?.codeforces?.handle);
+    const isLeetCodeConnected = Boolean(user?.leetcode?.username);
+
+    const handleConnect = async (platform) => {
+        if (platform === "github") {
+            window.location.href = getGitHubConnectUrl();
+            return;
+        }
+        setConnectModalPlatform(platform);
+        setConnectInput("");
+        setAccountError("");
+    };
+
+    const handleConnectSubmit = async () => {
+        if (!connectInput.trim()) {
+            setAccountError(`Please enter your ${connectModalPlatform === "codeforces" ? "Codeforces handle" : "LeetCode username"}.`);
+            return;
+        }
+
+        setAccountLoading(connectModalPlatform);
+        setAccountError("");
+        setAccountSuccess("");
+
+        try {
+            if (connectModalPlatform === "codeforces") {
+                await connectCodeforces(connectInput.trim());
+            } else {
+                await connectLeetCode(connectInput.trim());
+            }
+            await refreshUser();
+            setAccountSuccess(`${connectModalPlatform === "codeforces" ? "Codeforces" : "LeetCode"} connected successfully.`);
+            setConnectModalPlatform("");
+            setConnectInput("");
+        } catch (err) {
+            setAccountError(err.response?.data?.message || `Failed to connect. Please check the ${connectModalPlatform === "codeforces" ? "handle" : "username"} and try again.`);
+        } finally {
+            setAccountLoading("");
+        }
+    };
+
+    const handleUnlink = async (platform) => {
+        setAccountLoading(platform);
+        setAccountError("");
+        setAccountSuccess("");
+
+        try {
+            if (platform === "github") {
+                await unlinkGitHub();
+            } else if (platform === "codeforces") {
+                await unlinkCodeforces();
+            } else {
+                await unlinkLeetCode();
+            }
+            await refreshUser();
+            const name = platform === "github" ? "GitHub" : platform === "codeforces" ? "Codeforces" : "LeetCode";
+            setAccountSuccess(`${name} account unlinked successfully.`);
+            setConfirmUnlink("");
+        } catch (err) {
+            setAccountError(err.response?.data?.message || "Failed to unlink account. Please try again.");
+            setConfirmUnlink("");
+        } finally {
+            setAccountLoading("");
+        }
+    };
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -140,6 +226,308 @@ function Settings() {
                     </button>
                 </div>
             </section>
+
+            <section className="rounded-xl border border-border-subtle bg-bg-surface p-6 shadow-sm">
+                <div className="flex items-center gap-3">
+                    <div className="flex h-9 w-9 items-center justify-center rounded-lg border border-border-subtle bg-bg-canvas text-brand-400">
+                        <Link2 size={18} />
+                    </div>
+                    <div>
+                        <h2 className="font-display text-lg font-semibold text-text-primary">
+                            Connected Accounts
+                        </h2>
+                        <p className="font-body text-xs text-text-secondary sm:text-sm">
+                            Link your developer platform profiles to BeyondZenith.
+                        </p>
+                    </div>
+                </div>
+
+                {accountError && (
+                    <div className="mt-4 flex items-center gap-2 rounded-md border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-400">
+                        <AlertCircle size={16} className="shrink-0" />
+                        <span>{accountError}</span>
+                    </div>
+                )}
+
+                {accountSuccess && (
+                    <div className="mt-4 flex items-center gap-2 rounded-md border border-emerald-500/30 bg-emerald-500/10 px-4 py-3 text-sm text-emerald-400">
+                        <CheckCircle2 size={16} className="shrink-0" />
+                        <span>{accountSuccess}</span>
+                    </div>
+                )}
+
+                <div className="mt-6 space-y-4">
+                    {/* GitHub */}
+                    <div className="flex flex-col gap-4 rounded-lg border border-border-subtle bg-bg-canvas p-4 sm:flex-row sm:items-center sm:justify-between">
+                        <div className="flex items-center gap-3">
+                            <div className="flex h-10 w-10 items-center justify-center rounded-lg border border-border-subtle bg-bg-surface text-emerald-400">
+                                <GitBranch size={20} />
+                            </div>
+                            <div>
+                                <p className="font-body text-sm font-semibold text-text-primary">GitHub</p>
+                                {isGitHubConnected ? (
+                                    <p className="font-mono text-xs text-emerald-400">
+                                        Connected{user.github?.username ? ` — @${user.github.username}` : ""}
+                                    </p>
+                                ) : (
+                                    <p className="font-body text-xs text-text-secondary">
+                                        Track repositories, contributions, and open-source activity.
+                                    </p>
+                                )}
+                            </div>
+                        </div>
+
+                        <div className="flex items-center gap-2">
+                            {isGitHubConnected ? (
+                                confirmUnlink === "github" ? (
+                                    <>
+                                        <button
+                                            type="button"
+                                            onClick={() => handleUnlink("github")}
+                                            disabled={accountLoading === "github"}
+                                            className="inline-flex items-center gap-1.5 rounded-md border border-red-500/30 bg-red-500/10 px-3 py-1.5 text-xs font-medium text-red-400 transition hover:bg-red-500/20 disabled:opacity-50"
+                                        >
+                                            {accountLoading === "github" ? <Loader2 size={13} className="animate-spin" /> : <Unlink size={13} />}
+                                            <span>Confirm</span>
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={() => setConfirmUnlink("")}
+                                            className="rounded-md border border-border-subtle px-3 py-1.5 text-xs font-medium text-text-secondary transition hover:bg-bg-surface-raised"
+                                        >
+                                            Cancel
+                                        </button>
+                                    </>
+                                ) : (
+                                    <button
+                                        type="button"
+                                        onClick={() => { setConfirmUnlink("github"); setAccountError(""); setAccountSuccess(""); }}
+                                        className="inline-flex items-center gap-1.5 rounded-md border border-border-subtle px-3 py-1.5 text-xs font-medium text-text-secondary transition hover:border-red-500/30 hover:text-red-400"
+                                    >
+                                        <Unlink size={13} />
+                                        <span>Unlink</span>
+                                    </button>
+                                )
+                            ) : (
+                                <button
+                                    type="button"
+                                    onClick={() => handleConnect("github")}
+                                    className="inline-flex items-center gap-1.5 rounded-md bg-brand-500 px-4 py-1.5 text-xs font-medium text-white transition hover:bg-brand-400"
+                                >
+                                    <Link2 size={13} />
+                                    <span>Connect</span>
+                                </button>
+                            )}
+                        </div>
+                    </div>
+
+                    {/* Codeforces */}
+                    <div className="flex flex-col gap-4 rounded-lg border border-border-subtle bg-bg-canvas p-4 sm:flex-row sm:items-center sm:justify-between">
+                        <div className="flex items-center gap-3">
+                            <div className="flex h-10 w-10 items-center justify-center rounded-lg border border-border-subtle bg-bg-surface text-amber-400">
+                                <Code2 size={20} />
+                            </div>
+                            <div>
+                                <p className="font-body text-sm font-semibold text-text-primary">Codeforces</p>
+                                {isCodeforcesConnected ? (
+                                    <p className="font-mono text-xs text-amber-400">
+                                        Connected — @{user.codeforces.handle}
+                                    </p>
+                                ) : (
+                                    <p className="font-body text-xs text-text-secondary">
+                                        Monitor ratings, contests, and competitive programming progress.
+                                    </p>
+                                )}
+                            </div>
+                        </div>
+
+                        <div className="flex items-center gap-2">
+                            {isCodeforcesConnected ? (
+                                confirmUnlink === "codeforces" ? (
+                                    <>
+                                        <button
+                                            type="button"
+                                            onClick={() => handleUnlink("codeforces")}
+                                            disabled={accountLoading === "codeforces"}
+                                            className="inline-flex items-center gap-1.5 rounded-md border border-red-500/30 bg-red-500/10 px-3 py-1.5 text-xs font-medium text-red-400 transition hover:bg-red-500/20 disabled:opacity-50"
+                                        >
+                                            {accountLoading === "codeforces" ? <Loader2 size={13} className="animate-spin" /> : <Unlink size={13} />}
+                                            <span>Confirm</span>
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={() => setConfirmUnlink("")}
+                                            className="rounded-md border border-border-subtle px-3 py-1.5 text-xs font-medium text-text-secondary transition hover:bg-bg-surface-raised"
+                                        >
+                                            Cancel
+                                        </button>
+                                    </>
+                                ) : (
+                                    <button
+                                        type="button"
+                                        onClick={() => { setConfirmUnlink("codeforces"); setAccountError(""); setAccountSuccess(""); }}
+                                        className="inline-flex items-center gap-1.5 rounded-md border border-border-subtle px-3 py-1.5 text-xs font-medium text-text-secondary transition hover:border-red-500/30 hover:text-red-400"
+                                    >
+                                        <Unlink size={13} />
+                                        <span>Unlink</span>
+                                    </button>
+                                )
+                            ) : (
+                                <button
+                                    type="button"
+                                    onClick={() => handleConnect("codeforces")}
+                                    className="inline-flex items-center gap-1.5 rounded-md bg-brand-500 px-4 py-1.5 text-xs font-medium text-white transition hover:bg-brand-400"
+                                >
+                                    <Link2 size={13} />
+                                    <span>Connect</span>
+                                </button>
+                            )}
+                        </div>
+                    </div>
+
+                    {/* LeetCode */}
+                    <div className="flex flex-col gap-4 rounded-lg border border-border-subtle bg-bg-canvas p-4 sm:flex-row sm:items-center sm:justify-between">
+                        <div className="flex items-center gap-3">
+                            <div className="flex h-10 w-10 items-center justify-center rounded-lg border border-border-subtle bg-bg-surface text-yellow-400">
+                                <Code size={20} />
+                            </div>
+                            <div>
+                                <p className="font-body text-sm font-semibold text-text-primary">LeetCode</p>
+                                {isLeetCodeConnected ? (
+                                    <p className="font-mono text-xs text-yellow-400">
+                                        Connected — @{user.leetcode.username}
+                                    </p>
+                                ) : (
+                                    <p className="font-body text-xs text-text-secondary">
+                                        Track problems solved, difficulty breakdown, and contest rankings.
+                                    </p>
+                                )}
+                            </div>
+                        </div>
+
+                        <div className="flex items-center gap-2">
+                            {isLeetCodeConnected ? (
+                                confirmUnlink === "leetcode" ? (
+                                    <>
+                                        <button
+                                            type="button"
+                                            onClick={() => handleUnlink("leetcode")}
+                                            disabled={accountLoading === "leetcode"}
+                                            className="inline-flex items-center gap-1.5 rounded-md border border-red-500/30 bg-red-500/10 px-3 py-1.5 text-xs font-medium text-red-400 transition hover:bg-red-500/20 disabled:opacity-50"
+                                        >
+                                            {accountLoading === "leetcode" ? <Loader2 size={13} className="animate-spin" /> : <Unlink size={13} />}
+                                            <span>Confirm</span>
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={() => setConfirmUnlink("")}
+                                            className="rounded-md border border-border-subtle px-3 py-1.5 text-xs font-medium text-text-secondary transition hover:bg-bg-surface-raised"
+                                        >
+                                            Cancel
+                                        </button>
+                                    </>
+                                ) : (
+                                    <button
+                                        type="button"
+                                        onClick={() => { setConfirmUnlink("leetcode"); setAccountError(""); setAccountSuccess(""); }}
+                                        className="inline-flex items-center gap-1.5 rounded-md border border-border-subtle px-3 py-1.5 text-xs font-medium text-text-secondary transition hover:border-red-500/30 hover:text-red-400"
+                                    >
+                                        <Unlink size={13} />
+                                        <span>Unlink</span>
+                                    </button>
+                                )
+                            ) : (
+                                <button
+                                    type="button"
+                                    onClick={() => handleConnect("leetcode")}
+                                    className="inline-flex items-center gap-1.5 rounded-md bg-brand-500 px-4 py-1.5 text-xs font-medium text-white transition hover:bg-brand-400"
+                                >
+                                    <Link2 size={13} />
+                                    <span>Connect</span>
+                                </button>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            {/* Connect Handle/Username Modal */}
+            {connectModalPlatform && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-xs p-4">
+                    <div className="w-full max-w-md rounded-xl border border-border-subtle bg-bg-surface p-6 shadow-xl">
+                        <div className="flex items-center justify-between border-b border-border-subtle pb-4">
+                            <div className="flex items-center gap-2.5">
+                                <div className="flex h-9 w-9 items-center justify-center rounded-lg border border-border-subtle bg-bg-canvas text-brand-400">
+                                    {connectModalPlatform === "codeforces" ? <Code2 size={18} /> : <Code size={18} />}
+                                </div>
+                                <h3 className="font-display text-lg font-bold text-text-primary">
+                                    Connect {connectModalPlatform === "codeforces" ? "Codeforces" : "LeetCode"}
+                                </h3>
+                            </div>
+                            <button
+                                type="button"
+                                onClick={() => { setConnectModalPlatform(""); setAccountError(""); }}
+                                className="rounded-lg p-1 text-text-secondary hover:bg-bg-surface-raised hover:text-text-primary transition"
+                            >
+                                <X size={18} />
+                            </button>
+                        </div>
+
+                        <div className="mt-5 space-y-4">
+                            {accountError && (
+                                <div className="flex items-center gap-2 rounded-md border border-red-500/30 bg-red-500/10 px-4 py-3 text-xs text-red-400">
+                                    <AlertCircle size={15} className="shrink-0" />
+                                    <span>{accountError}</span>
+                                </div>
+                            )}
+
+                            <div>
+                                <label
+                                    htmlFor="connectInput"
+                                    className="mb-2 block text-xs font-medium text-text-primary"
+                                >
+                                    {connectModalPlatform === "codeforces" ? "Codeforces Handle" : "LeetCode Username"}
+                                </label>
+                                <input
+                                    id="connectInput"
+                                    type="text"
+                                    value={connectInput}
+                                    onChange={(e) => setConnectInput(e.target.value)}
+                                    placeholder={connectModalPlatform === "codeforces" ? "e.g. tourist" : "e.g. neal_wu"}
+                                    className="w-full rounded-md border border-border-subtle bg-bg-canvas px-3 py-2.5 text-sm text-text-primary outline-none transition focus:border-brand-500"
+                                    onKeyDown={(e) => { if (e.key === "Enter") handleConnectSubmit(); }}
+                                />
+                            </div>
+
+                            <div className="flex items-center justify-end gap-3 pt-2">
+                                <button
+                                    type="button"
+                                    onClick={() => { setConnectModalPlatform(""); setAccountError(""); }}
+                                    disabled={Boolean(accountLoading)}
+                                    className="rounded-md border border-border-subtle px-4 py-2 text-xs font-medium text-text-secondary transition hover:bg-bg-surface-raised"
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={handleConnectSubmit}
+                                    disabled={Boolean(accountLoading)}
+                                    className="inline-flex items-center gap-2 rounded-md bg-brand-500 px-4 py-2 text-xs font-medium text-white transition hover:bg-brand-400 disabled:opacity-50"
+                                >
+                                    {accountLoading ? (
+                                        <>
+                                            <Loader2 size={14} className="animate-spin" />
+                                            <span>Connecting...</span>
+                                        </>
+                                    ) : (
+                                        <span>Connect</span>
+                                    )}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
 
             <section className="rounded-xl border border-border-subtle bg-bg-surface p-6 shadow-sm">
                 <div className="flex items-center gap-3">
