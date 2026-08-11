@@ -19,3 +19,8 @@ export const logout = async () => {
     const response = await api.post("/auth/logout");
     return response.data;
 };
+
+export const changePassword = async (passwords) => {
+    const response = await api.patch("/auth/change-password", passwords);
+    return response.data;
+};

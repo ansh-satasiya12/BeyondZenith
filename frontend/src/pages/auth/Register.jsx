@@ -153,6 +153,15 @@ function Register() {
                                 Sign in
                             </Link>
                         </p>
+                        <p className="mt-2 text-center text-xs text-text-secondary">
+                            Want to know about us more?{" "}
+                            <Link
+                                to="/"
+                                className="text-brand-500 hover:text-brand-400"
+                            >
+                                Back to home
+                            </Link>
+                        </p>
                     </div>
                 </form>
             </div>

@@ -1,5 +1,6 @@
 import { createContext, useContext, useEffect, useState } from "react";
 import { getMe, logout as logoutUser } from "../services/auth.service";
+import { setUnauthenticatedHandler } from "../services/api";
 
 const AuthContext = createContext(null);
 
@@ -8,6 +9,10 @@ export function AuthProvider({ children }) {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
+        setUnauthenticatedHandler(() => {
+            setUser(null);
+        });
+
         const restoreSession = async () => {
             try {
                 const data = await getMe();

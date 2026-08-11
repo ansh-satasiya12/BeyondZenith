@@ -2,7 +2,7 @@
 
 @import "tailwindcss";
 
-@theme {
+:root {
   --color-bg-canvas: #0D1117;
   --color-bg-surface: #161B22;
   --color-bg-surface-raised: #1C2333;
@@ -20,6 +20,38 @@
   --font-mono: "JetBrains Mono", monospace;
 }
 
+:root.light {
+  --color-bg-canvas: #F6F8FA;
+  --color-bg-surface: #FFFFFF;
+  --color-bg-surface-raised: #F3F4F6;
+
+  --color-border-subtle: #D0D7DE;
+
+  --color-text-primary: #1F2328;
+  --color-text-secondary: #656D76;
+
+  --color-brand-500: #6E5DE7;
+  --color-brand-400: #5C4EB7;
+}
+
+@theme {
+  --color-bg-canvas: var(--color-bg-canvas);
+  --color-bg-surface: var(--color-bg-surface);
+  --color-bg-surface-raised: var(--color-bg-surface-raised);
+
+  --color-border-subtle: var(--color-border-subtle);
+
+  --color-text-primary: var(--color-text-primary);
+  --color-text-secondary: var(--color-text-secondary);
+
+  --color-brand-500: var(--color-brand-500);
+  --color-brand-400: var(--color-brand-400);
+
+  --font-display: "Space Grotesk", sans-serif;
+  --font-body: "Inter", sans-serif;
+  --font-mono: "JetBrains Mono", monospace;
+}
+
 html,
 body,
 #root {
@@ -28,7 +60,7 @@ body,
 
 body {
   margin: 0;
-  background: #0D1117;
-  color: #E6EDF3;
+  background-color: var(--color-bg-canvas);
+  color: var(--color-text-primary);
   font-family: "Inter", sans-serif;
 }

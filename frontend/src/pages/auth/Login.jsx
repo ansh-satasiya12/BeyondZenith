@@ -41,6 +41,10 @@ function Login() {
                 error.response?.data?.message ||
                 "Login failed. Please try again."
             );
+            setFormData({
+                email: "",
+                password: "",
+            });
         } finally {
             setLoading(false);
         }
@@ -123,6 +127,15 @@ function Login() {
                             className="text-brand-500 hover:text-brand-400"
                         >
                             Create an account
+                        </Link>
+                    </p>
+                    <p className="mt-2 text-center text-xs text-text-secondary">
+                        Want to know about us more?{" "}
+                        <Link
+                            to="/"
+                            className="text-brand-500 hover:text-brand-400"
+                        >
+                            Back to home
                         </Link>
                     </p>
                 </form>

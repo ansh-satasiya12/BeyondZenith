@@ -1,5 +1,6 @@
 import { Routes, Route, Navigate } from "react-router-dom";
 
+import Landing from "../pages/Landing";
 import Login from "../pages/auth/Login";
 import Register from "../pages/auth/Register";
 import Dashboard from "../pages/Dashboard";
@@ -16,6 +17,7 @@ function AppRoutes() {
     return (
         <Routes>
             <Route element={<PublicRoute />}>
+                <Route path="/" element={<Landing />} />
                 <Route path="/login" element={<Login />} />
                 <Route path="/register" element={<Register />} />
             </Route>
@@ -30,8 +32,7 @@ function AppRoutes() {
                 </Route>
             </Route>
 
-            <Route path="/" element={<Navigate to="/dashboard" replace />} />
-            <Route path="*" element={<Navigate to="/dashboard" replace />} />
+            <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
     );
 }
