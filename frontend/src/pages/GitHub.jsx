@@ -3,6 +3,7 @@ import { GitBranch, RefreshCw } from "lucide-react";
 import { Link } from "react-router-dom";
 
 import githubService from "../services/github.service";
+import { useAuth } from "../context/AuthContext";
 
 import GitHubProfile from "../components/github/GitHubProfile";
 import GitHubStats from "../components/github/GitHubStats";
@@ -10,6 +11,9 @@ import GitHubAnalytics from "../components/github/GitHubAnalytics";
 import GitHubRepositories from "../components/github/GitHubRepositories";
 
 export default function GitHub() {
+    const { user } = useAuth();
+    const connected = Boolean(user?.github?.id);
+
     const [data, setData] = useState(null);
 
     const [loading, setLoading] = useState(true);
@@ -36,8 +40,14 @@ export default function GitHub() {
     };
 
     useEffect(() => {
-        loadDashboard();
-    }, []);
+        if (connected) {
+            loadDashboard();
+        } else {
+            setData(null);
+            setError("");
+            setLoading(false);
+        }
+    }, [user?.github?.id]);
 
     const syncEverything = async () => {
         try {
