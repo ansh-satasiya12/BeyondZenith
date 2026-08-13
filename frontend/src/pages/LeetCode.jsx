@@ -272,12 +272,12 @@ export default function LeetCode() {
     };
 
     const openLeetCodeProfile = () => {
-        if (!dashboard?.profile?.username) return;
+        const username = dashboard?.data?.profile?.username;
+
+        if (!username) return;
 
         window.open(
-            `https://leetcode.com/u/${encodeURIComponent(
-                dashboard.profile.username
-            )}/`,
+            `https://leetcode.com/u/${encodeURIComponent(username)}/`,
             "_blank",
             "noopener,noreferrer"
         );

@@ -354,12 +354,12 @@ export default function Codeforces() {
     };
 
     const openCodeforcesProfile = () => {
-        if (!dashboard?.profile?.handle) return;
+        const username = dashboard?.data?.profile?.username;
+
+        if (!username) return;
 
         window.open(
-            `https://codeforces.com/profile/${encodeURIComponent(
-                dashboard.profile.handle
-            )}`,
+            `https://codeforces.com/profile/${encodeURIComponent(username)}`,
             "_blank",
             "noopener,noreferrer"
         );
