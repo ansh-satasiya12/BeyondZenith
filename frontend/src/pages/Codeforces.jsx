@@ -354,7 +354,7 @@ export default function Codeforces() {
     };
 
     const openCodeforcesProfile = () => {
-        const username = dashboard?.data?.profile?.username;
+        const username = dashboard?.profile?.username;
 
         if (!username) return;
 

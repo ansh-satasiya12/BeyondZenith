@@ -272,7 +272,7 @@ export default function LeetCode() {
     };
 
     const openLeetCodeProfile = () => {
-        const username = dashboard?.data?.profile?.username;
+        const username = dashboard?.profile?.username;
 
         if (!username) return;
 
