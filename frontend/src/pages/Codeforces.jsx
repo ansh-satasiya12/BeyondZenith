@@ -402,14 +402,17 @@ export default function Codeforces() {
 
                 {connected && (
                     <div className="flex flex-wrap gap-2">
-                        <button
-                            onClick={openCodeforcesProfile}
-                            className="inline-flex items-center gap-2 rounded-lg border border-border-subtle px-4 py-2 text-sm hover:bg-bg-surface-raised"
+                        <a
+                            href={`https://codeforces.com/profile/${encodeURIComponent(
+                                dashboard.profile.handle
+                            )}/`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-2 rounded-lg border border-border-subtle px-4 py-2 text-sm hover:bg-bg-surface-raised cursor-pointer"
                         >
                             <ExternalLink size={15} />
                             CF Profile
-                        </button>
-
+                        </a>
                         <button
                             onClick={sync}
                             disabled={syncing}

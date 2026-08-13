@@ -281,8 +281,6 @@ export default function LeetCode() {
             "_blank",
             "noopener,noreferrer"
         );
-        console.log("LC dashboard:", dashboard);
-        console.log("LC username:", dashboard?.data?.profile?.username);
     };
 
     if (loading) {
@@ -324,13 +322,17 @@ export default function LeetCode() {
 
                 {connected && (
                     <div className="flex flex-wrap gap-2">
-                        <button
-                            onClick={openLeetCodeProfile}
-                            className="inline-flex items-center gap-2 rounded-lg border border-border-subtle px-4 py-2 text-sm hover:bg-bg-surface-raised"
+                        <a
+                            href={`https://leetcode.com/u/${encodeURIComponent(
+                                dashboard.profile.username
+                            )}/`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-2 rounded-lg border border-border-subtle px-4 py-2 text-sm hover:bg-bg-surface-raised cursor-pointer"
                         >
                             <ExternalLink size={15} />
                             LC Profile
-                        </button>
+                        </a>
 
                         <button
                             onClick={sync}
