@@ -7,7 +7,7 @@ const buildAccessTokenCookie = (token) => {
         options: {
             httpOnly: true,
             secure: NODE_ENV === "production",
-            sameSite: "lax",
+            sameSite: NODE_ENV === "production" ? "none" : "lax",
             maxAge: JWT_ACCESS_COOKIE_MAX_AGE
         }
     }
@@ -20,7 +20,7 @@ const buildRefreshTokenCookie = (token) => {
         options: {
             httpOnly: true,
             secure: NODE_ENV === "production",
-            sameSite: "lax",
+            sameSite: NODE_ENV === "production" ? "none" : "lax",
             maxAge: JWT_REFRESH_COOKIE_MAX_AGE
         }
     }
@@ -32,7 +32,7 @@ const buildClearAccessTokenCookie = () => {
         options: {
             httpOnly: true,
             secure: NODE_ENV === "production",
-            sameSite: "lax",
+            sameSite: NODE_ENV === "production" ? "none" : "lax",
         }
     }
 };
@@ -43,7 +43,7 @@ const buildClearRefreshTokenCookie = () => {
         options: {
             httpOnly: true,
             secure: NODE_ENV === "production",
-            sameSite: "lax",
+            sameSite: NODE_ENV === "production" ? "none" : "lax",
         }
     }
 };
