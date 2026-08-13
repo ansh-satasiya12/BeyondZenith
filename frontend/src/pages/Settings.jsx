@@ -43,9 +43,18 @@ function Settings() {
 
     const handleConnect = async (platform) => {
         if (platform === "github") {
-            window.location.href = getGitHubConnectUrl();
+            try {
+                const response = await api.get("/github/connect");
+
+                window.location.href = response.data.authUrl;
+            } catch (error) {
+                console.error("GitHub connection failed:", error);
+                setAccountError("Failed to connect GitHub");
+            }
+
             return;
         }
+
         setConnectModalPlatform(platform);
         setConnectInput("");
         setAccountError("");

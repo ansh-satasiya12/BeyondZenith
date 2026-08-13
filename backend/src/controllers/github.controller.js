@@ -22,10 +22,17 @@ const {
 
 const connectGitHubController = async (req, res) => {
     const userId = req.user.id;
+
     const state = generateOAuthState();
+
     saveOAuthState(state, userId);
+
     const authUrl = getGitHubAuthUrl(state);
-    return res.redirect(authUrl);
+
+    return res.status(200).json({
+        success: true,
+        authUrl,
+    });
 };
 
 const callbackGitHubController = async (req, res) => {
