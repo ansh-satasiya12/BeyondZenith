@@ -43,6 +43,7 @@ const callbackGitHubController = async (req, res) => {
     }
 
     const storedState = getOAuthState(state);
+
     if (!storedState) {
         throw new AppError("Unauthorized", 401);
     }
@@ -51,13 +52,29 @@ const callbackGitHubController = async (req, res) => {
 
     deleteOAuthState(state);
 
-    const accessToken = await exchangeCodeForAccessToken(code);
-    const profile = await fetchGitHubProfile(accessToken);
-    await connectGitHub(userId, profile, accessToken);
+    try {
+        const accessToken = await exchangeCodeForAccessToken(code);
+        const profile = await fetchGitHubProfile(accessToken);
 
-    return res.redirect(
-        `${process.env.FRONTEND_URL}/settings?github=connected`
-    );
+        await connectGitHub(userId, profile, accessToken);
+
+        return res.redirect(
+            `${process.env.FRONTEND_URL}/settings?github=connected`
+        );
+
+    } catch (error) {
+        if (error.statusCode === 409) {
+            return res.redirect(
+                `${process.env.FRONTEND_URL}/settings?github=already-linked`
+            );
+        }
+
+        console.error("GitHub OAuth error:", error);
+
+        return res.redirect(
+            `${process.env.FRONTEND_URL}/settings?github=error`
+        );
+    }
 };
 
 const syncGitHubController = async (req, res) => {
