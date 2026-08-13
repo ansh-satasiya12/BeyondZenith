@@ -281,6 +281,8 @@ export default function LeetCode() {
             "_blank",
             "noopener,noreferrer"
         );
+        console.log("LC dashboard:", dashboard);
+        console.log("LC username:", dashboard?.data?.profile?.username);
     };
 
     if (loading) {
@@ -329,9 +331,6 @@ export default function LeetCode() {
                             <ExternalLink size={15} />
                             LC Profile
                         </button>
-
-                        console.log("LC dashboard:", dashboard);
-                        console.log("LC username:", dashboard?.data?.profile?.username);
 
                         <button
                             onClick={sync}
