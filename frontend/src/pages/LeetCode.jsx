@@ -330,6 +330,9 @@ export default function LeetCode() {
                             LC Profile
                         </button>
 
+                        console.log("LC dashboard:", dashboard);
+                        console.log("LC username:", dashboard?.data?.profile?.username);
+
                         <button
                             onClick={sync}
                             disabled={syncing}
