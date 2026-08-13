@@ -15,6 +15,7 @@ import {
     GitBranch, Code2, Code, Link2, Unlink, Loader2, X,
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import api from "../services/api";
 
 function Settings() {
     const { theme, setTheme } = useTheme();
