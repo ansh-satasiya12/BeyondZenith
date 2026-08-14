@@ -191,11 +191,17 @@ export default function LeetCode() {
 
         try {
             setConnecting(true);
+            setLoading(true);
             setError("");
 
             await leetcodeService.connect(
                 username.trim()
             );
+
+            const dashboardData =
+                await leetcodeService.getDashboard();
+
+            setDashboard(dashboardData);
 
             await refreshUser();
             setUsername("");
@@ -206,6 +212,7 @@ export default function LeetCode() {
             );
         } finally {
             setConnecting(false);
+            setLoading(false);
         }
     };
 
@@ -320,11 +327,11 @@ export default function LeetCode() {
                     </p>
                 </div>
 
-                {connected && (
+                {connected && dashboard?.profile && (
                     <div className="flex flex-wrap gap-2">
                         <a
                             href={`https://leetcode.com/u/${encodeURIComponent(
-                                dashboard.profile.username
+                                dashboard.profile?.username || user?.leetcode?.username || ""
                             )}/`}
                             target="_blank"
                             rel="noopener noreferrer"
@@ -434,7 +441,7 @@ export default function LeetCode() {
                                     <img
                                         src={
                                             dashboard.profile
-                                                .avatarUrl
+                                                ?.avatarUrl
                                         }
                                         alt=""
                                         className="h-16 w-16 rounded-full"
@@ -457,7 +464,7 @@ export default function LeetCode() {
                                         <p className="text-sm text-text-secondary">
                                             {
                                                 dashboard.profile
-                                                    .name
+                                                    ?.name
                                             }
                                         </p>
                                     )}
@@ -863,8 +870,8 @@ export default function LeetCode() {
                         {dashboard?.contests?.ratingHistory
                             ?.length > 0 ? (
                             [
-                                ...dashboard.contests
-                                    .ratingHistory,
+                                ...(dashboard?.contests
+                                    ?.ratingHistory || []),
                             ]
                                 .reverse()
                                 .map(
@@ -873,9 +880,8 @@ export default function LeetCode() {
                                         index
                                     ) => {
                                         const history =
-                                            dashboard
-                                                .contests
-                                                .ratingHistory;
+                                            dashboard?.contests
+                                                ?.ratingHistory || [];
 
                                         const previous =
                                             history[

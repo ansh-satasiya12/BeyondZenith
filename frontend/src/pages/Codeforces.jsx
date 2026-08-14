@@ -258,9 +258,13 @@ export default function Codeforces() {
 
         try {
             setConnecting(true);
+            setLoading(true);
             setError("");
 
             await codeforcesService.connect(handle.trim());
+
+            const dashboardData = await codeforcesService.getDashboard();
+            setDashboard(dashboardData);
 
             await refreshUser();
             setHandle("");
@@ -271,6 +275,7 @@ export default function Codeforces() {
             );
         } finally {
             setConnecting(false);
+            setLoading(false);
         }
     };
 
@@ -400,11 +405,11 @@ export default function Codeforces() {
                     </p>
                 </div>
 
-                {connected && (
+                {connected && dashboard?.profile && (
                     <div className="flex flex-wrap gap-2">
                         <a
                             href={`https://codeforces.com/profile/${encodeURIComponent(
-                                dashboard.profile.handle
+                                dashboard.profile?.handle || user?.codeforces?.handle || ""
                             )}/`}
                             target="_blank"
                             rel="noopener noreferrer"
@@ -494,35 +499,35 @@ export default function Codeforces() {
                     <section className="rounded-2xl border border-border-subtle bg-bg-surface p-5">
                         <div className="flex flex-wrap items-center justify-between gap-5">
                             <div className="flex items-center gap-4">
-                                {dashboard.profile.avatar ? (
+                                {dashboard.profile?.avatar ? (
                                     <img
                                         src={
-                                            dashboard.profile.avatar
+                                            dashboard.profile?.avatar
                                         }
                                         alt=""
                                         className="h-16 w-16 rounded-full"
                                     />
                                 ) : (
                                     <div className="flex h-16 w-16 items-center justify-center rounded-full bg-bg-surface-raised text-xl font-bold">
-                                        {dashboard.profile.handle?.[0]?.toUpperCase()}
+                                        {dashboard.profile?.handle?.[0]?.toUpperCase()}
                                     </div>
                                 )}
 
                                 <div>
                                     <h2 className="text-xl font-semibold text-text-primary">
-                                        {dashboard.profile.handle}
+                                        {dashboard.profile?.handle}
                                     </h2>
 
                                     <p className="text-sm text-text-secondary">
-                                        {dashboard.profile.rank ||
+                                        {dashboard.profile?.rank ||
                                             "Unrated"}
                                     </p>
 
-                                    {dashboard.profile.organization && (
+                                    {dashboard.profile?.organization && (
                                         <p className="mt-1 text-xs text-text-secondary">
                                             {
                                                 dashboard.profile
-                                                    .organization
+                                                    ?.organization
                                             }
                                         </p>
                                     )}
@@ -601,7 +606,7 @@ export default function Codeforces() {
                             <Stat
                                 label="Best Rank"
                                 value={
-                                    dashboard.overview.bestRank ||
+                                    dashboard.overview?.bestRank ||
                                     "—"
                                 }
                             />
@@ -632,8 +637,8 @@ export default function Codeforces() {
                                 </p>
                             </div>
 
-                            {dashboard.overview
-                                .totalSubmissions > 10 && (
+                            {(dashboard.overview
+                                ?.totalSubmissions ?? 0) > 10 && (
                                     <button
                                         onClick={loadAllSubmissions}
                                         disabled={
@@ -705,7 +710,7 @@ export default function Codeforces() {
                                 </p>
                             </div>
 
-                            {dashboard.overview.totalContests >
+                            {(dashboard.overview?.totalContests ?? 0) >
                                 15 && (
                                     <button
                                         onClick={loadAllContests}
