@@ -194,21 +194,23 @@ export default function LeetCode() {
             setLoading(true);
             setError("");
 
-            await leetcodeService.connect(
-                username.trim()
-            );
+            await leetcodeService.connect(username.trim());
 
-            const dashboardData =
-                await leetcodeService.getDashboard();
+            await leetcodeService.sync();
 
+            const dashboardData = await leetcodeService.getDashboard();
             setDashboard(dashboardData);
 
             await refreshUser();
+
+            await loadAnalytics();
+            await loadContests();
+
             setUsername("");
         } catch (err) {
             setError(
                 err.response?.data?.message ||
-                "Failed to connect LeetCode."
+                "Failed to connect and sync LeetCode."
             );
         } finally {
             setConnecting(false);

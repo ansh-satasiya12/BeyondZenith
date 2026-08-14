@@ -263,10 +263,19 @@ export default function Codeforces() {
 
             await codeforcesService.connect(handle.trim());
 
+            await codeforcesService.sync();
+
             const dashboardData = await codeforcesService.getDashboard();
             setDashboard(dashboardData);
 
+            const analyticsData = await codeforcesService.getAnalytics();
+            setAnalytics(analyticsData);
+
+            await loadSubmissions();
+            await loadContests();
+
             await refreshUser();
+
             setHandle("");
         } catch (err) {
             setError(
