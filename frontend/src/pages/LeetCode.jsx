@@ -728,6 +728,7 @@ export default function LeetCode() {
                     onClose={() =>
                         setSelectedContest(null)
                     }
+                    zIndex="z-[60]"
                 >
                     <Detail
                         label="Rank"
@@ -1293,10 +1294,11 @@ function DetailsModal({
     title,
     children,
     onClose,
+    zIndex = "z-50",
 }) {
     return (
         <div
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4"
+            className={`fixed inset-0 ${zIndex} flex items-center justify-center bg-black/60 p-4`}
             onMouseDown={onClose}
         >
             <div

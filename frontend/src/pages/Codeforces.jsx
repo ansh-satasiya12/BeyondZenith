@@ -802,6 +802,7 @@ export default function Codeforces() {
                     onClose={() =>
                         setSelectedSubmission(null)
                     }
+                    zIndex="z-[60]"
                 >
                     <Detail
                         label="Verdict"
@@ -868,6 +869,7 @@ export default function Codeforces() {
                     onClose={() =>
                         setSelectedContest(null)
                     }
+                    zIndex="z-[60]"
                 >
                     <Detail
                         label="Rank"
@@ -1404,10 +1406,15 @@ function Row({ label, value }) {
     );
 }
 
-function DetailsModal({ title, children, onClose }) {
+function DetailsModal({
+    title,
+    children,
+    onClose,
+    zIndex = "z-50",
+}) {
     return (
         <div
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4"
+            className={`fixed inset-0 ${zIndex} flex items-center justify-center bg-black/60 p-4`}
             onMouseDown={onClose}
         >
             <div
